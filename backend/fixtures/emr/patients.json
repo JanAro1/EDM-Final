@@ -1,0 +1,132 @@
+[
+  {
+    "emr_patient_id": "EXT-75817",
+    "mrn": "MRN-100000",
+    "first_name": "Omar",
+    "last_name": "Abadilla",
+    "dob": "1962-12-22",
+    "sex": "OTHER",
+    "phone": "+639524501541",
+    "city": "Iloilo City"
+  },
+  {
+    "emr_patient_id": "EXT-91878",
+    "mrn": "MRN-100001",
+    "first_name": "Reynaldo",
+    "last_name": "Navarro",
+    "dob": "2005-12-13",
+    "sex": "MALE",
+    "phone": "+639619497667",
+    "city": "Baguio"
+  },
+  {
+    "emr_patient_id": "EXT-24462",
+    "mrn": "MRN-100002",
+    "first_name": "Hannah",
+    "last_name": "Lim",
+    "dob": "1985-07-07",
+    "sex": "FEMALE",
+    "phone": "+639207144446",
+    "city": "Iloilo City"
+  },
+  {
+    "emr_patient_id": "EXT-13384",
+    "mrn": "MRN-100003",
+    "first_name": "Maria",
+    "last_name": "Lopez",
+    "dob": "1948-10-06",
+    "sex": "FEMALE",
+    "phone": "+639206742922",
+    "city": "Cebu City"
+  },
+  {
+    "emr_patient_id": "EXT-26567",
+    "mrn": "MRN-100004",
+    "first_name": "Samuel",
+    "last_name": "Navarro",
+    "dob": "2000-08-26",
+    "sex": "FEMALE",
+    "phone": "+639582890838",
+    "city": "Baguio"
+  },
+  {
+    "emr_patient_id": "EXT-55220",
+    "mrn": "MRN-100005",
+    "first_name": "Ana",
+    "last_name": "Santos",
+    "dob": "1942-08-31",
+    "sex": "FEMALE",
+    "phone": "+639517043424",
+    "city": "Pasig"
+  },
+  {
+    "emr_patient_id": "EXT-49965",
+    "mrn": "MRN-100006",
+    "first_name": "Charmaine",
+    "last_name": "Castillo",
+    "dob": "2013-08-11",
+    "sex": "OTHER",
+    "phone": "+639949036887",
+    "city": "Iloilo City"
+  },
+  {
+    "emr_patient_id": "EXT-75659",
+    "mrn": "MRN-100007",
+    "first_name": "Andres",
+    "last_name": "Aquino",
+    "dob": "1943-01-28",
+    "sex": "OTHER",
+    "phone": "+639944108127",
+    "city": "Davao City"
+  },
+  {
+    "emr_patient_id": "EXT-16163",
+    "mrn": "MRN-100008",
+    "first_name": "Bernardo",
+    "last_name": "Tan",
+    "dob": "2009-02-12",
+    "sex": "MALE",
+    "phone": "+639619398296",
+    "city": "Cebu City"
+  },
+  {
+    "emr_patient_id": "EXT-24476",
+    "mrn": "MRN-100009",
+    "first_name": "Nestor",
+    "last_name": "Ramos",
+    "dob": "1960-01-12",
+    "sex": "MALE",
+    "phone": "+639399287449",
+    "city": "Cebu City"
+  },
+  {
+    "emr_patient_id": "EXT-JDC-1",
+    "mrn": "MRN-900001",
+    "first_name": "Juan",
+    "last_name": "Dela Cruz",
+    "dob": "1985-03-14",
+    "sex": "MALE",
+    "phone": "+639171234567",
+    "city": "Manila"
+  },
+  {
+    "emr_patient_id": "EXT-JDC-2",
+    "mrn": "MRN-900002",
+    "first_name": "JUAN",
+    "last_name": "DELA CRUZ",
+    "dob": "1985-03-14",
+    "sex": "MALE",
+    "phone": "+639171234567",
+    "city": "MANILA"
+  },
+  {
+    "emr_patient_id": "EXT-JDC-3",
+    "mrn": "MRN-900003",
+    "first_name": "Juan D.",
+    "last_name": "Cruz",
+    "dob": "1985-03-14",
+    "sex": "MALE",
+    "phone": "+639171234567",
+    "city": "Manila"
+  }
+]

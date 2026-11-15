@@ -1,0 +1,134 @@
+[
+  {
+    "lis_order_id": "LIS-300000",
+    "emr_mrn": "MRN-100041",
+    "test_code": "TSH",
+    "test_name": "Thyroid Stimulating Hormone",
+    "ordered_at": "2024-08-22T00:12:12.251Z",
+    "value": 23.6,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300001",
+    "emr_mrn": "MRN-100029",
+    "test_code": "ALT",
+    "test_name": "Alanine Aminotransferase",
+    "ordered_at": "2024-08-11T09:12:15.890Z",
+    "value": 46.5,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300002",
+    "emr_mrn": "MRN-100016",
+    "test_code": "TSH",
+    "test_name": "Thyroid Stimulating Hormone",
+    "ordered_at": "2024-09-02T04:25:50.254Z",
+    "value": 33.5,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300003",
+    "emr_mrn": "MRN-100068",
+    "test_code": "HBA1C",
+    "test_name": "Hemoglobin A1c",
+    "ordered_at": "2024-05-13T07:06:46.959Z",
+    "value": 48.8,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300004",
+    "emr_mrn": "MRN-100066",
+    "test_code": "CHOL",
+    "test_name": "Total Cholesterol",
+    "ordered_at": "2024-04-21T21:25:53.262Z",
+    "value": 44.6,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300005",
+    "emr_mrn": "MRN-100033",
+    "test_code": "TSH",
+    "test_name": "Thyroid Stimulating Hormone",
+    "ordered_at": "2024-10-18T22:47:57.428Z",
+    "value": 46.7,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300006",
+    "emr_mrn": "MRN-100008",
+    "test_code": "GLU",
+    "test_name": "Glucose, Fasting",
+    "ordered_at": "2024-05-02T18:21:05.307Z",
+    "value": 41.7,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300007",
+    "emr_mrn": "MRN-100018",
+    "test_code": "CREAT",
+    "test_name": "Creatinine",
+    "ordered_at": "2024-12-31T17:19:34.732Z",
+    "value": 28,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300008",
+    "emr_mrn": "MRN-100113",
+    "test_code": "GLU",
+    "test_name": "Glucose, Fasting",
+    "ordered_at": "2024-05-27T19:25:57.003Z",
+    "value": 34.4,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300009",
+    "emr_mrn": "MRN-100080",
+    "test_code": "HBA1C",
+    "test_name": "Hemoglobin A1c",
+    "ordered_at": "2024-06-08T08:45:51.087Z",
+    "value": 29.2,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300010",
+    "emr_mrn": "MRN-100050",
+    "test_code": "WBC",
+    "test_name": "White Blood Cell Count",
+    "ordered_at": "2024-07-12T21:20:53.235Z",
+    "value": 49.2,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  },
+  {
+    "lis_order_id": "LIS-300011",
+    "emr_mrn": "MRN-100050",
+    "test_code": "WBC",
+    "test_name": "White Blood Cell Count",
+    "ordered_at": "2024-02-18T07:18:45.819Z",
+    "value": 44.2,
+    "unit": "mg/dL",
+    "reference_range": "10-50",
+    "result_status": "F"
+  }
+]
