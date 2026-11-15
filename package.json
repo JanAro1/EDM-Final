@@ -1,0 +1,28 @@
+{
+  "name": "medidata",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MediData — healthcare Enterprise Data Management platform (synthetic data only). Root orchestration for the backend workspace + the standalone Next.js frontend.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "npm --prefix backend run dev:api",
+    "dev:worker": "npm --prefix backend run dev:worker",
+    "dev:web": "npm --prefix frontend run dev",
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "typecheck": "npm --prefix backend run typecheck && npm --prefix frontend run typecheck",
+    "test": "npm --prefix backend test",
+    "smoke": "npm --prefix backend run smoke",
+    "seed": "npm --prefix backend run seed",
+    "pipeline": "npm --prefix backend run pipeline",
+    "format": "npm --prefix backend run format",
+    "migrate:dev": "npm --prefix backend run migrate:dev",
+    "migrate:deploy": "npm --prefix backend run migrate:deploy",
+    "migrate:status": "npm --prefix backend run migrate:status"
+  }
+}
