@@ -1,60 +1,83 @@
 # Project scope — Healthcare / Labs
 
-MediData implements **one industry row** from the reference table: **Healthcare / Labs**.
-Nothing from banking, retail, manufacturing, or education exists in the codebase.
+The activity assigns each group **one industry** and asks for a flow:
+**sources → integration methods → governance → outputs**. MediData is the
+**Healthcare / Labs** column, implemented end to end. No other industry exists in the
+codebase.
 
-## The four selections
+## Flow chart for the presentation
 
-| Column                 | Our selection   | Why this one                                                                                                   |
-| ---------------------- | --------------- | -------------------------------------------------------------------------------------------------------------- |
-| **Data source**        | **EMR**         | System of record for patient demographics and encounters; highest MDM survivorship priority (`EMR > LIS > …`). |
-| **Integration method** | **ETL / ELT**   | The pipeline is extract → staging → transform (ETL), then in-database SQL assets and marts (ELT).              |
-| **Governance need**    | **HIPAA**       | Addressed through role-based access control, audit logging, data masking, and consent tracking.                |
-| **Output**             | **Patient 360** | A single unified patient record built from the federated `gov.patient_360` view and exposed in the UI.         |
+```mermaid
+flowchart LR
+    subgraph SRC["Data sources"]
+        EMR["EMR<br/>patients + encounters"]
+        LIS["LIS<br/>lab orders + results"]
+        BIL["Billing<br/>claims + invoices"]
+        INS["Insurance<br/>payers + coverage"]
+    end
 
-## Where each selection is implemented
+    subgraph INT["Integration methods"]
+        ETL["ETL / ELT<br/>staging → transform → warehouse"]
+        API["APIs<br/>REST · FHIR · HL7 v2"]
+        FEED["Outbox change feed<br/>(SSE)"]
+    end
 
-| Selection   | Code / database evidence                                                                                                             |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| EMR         | `backend/fixtures/emr/patients.json`, `emr` connector in `packages/etl-core/src/extractors/`, `SourceSystem.EMR` in the schema       |
-| ETL / ELT   | `packages/etl-core/src/pipeline.ts` (extract → transform → load), `elt.ts` (`applySqlAssets`), `warehouse-loader.ts`, 3 marts        |
-| HIPAA       | `apps/api/src/middleware/rbac.ts` (CASL roles), `middleware/audit.ts`, `middleware/masking.ts`, `Consent` model                      |
-| Patient 360 | `packages/db/sql/warehouse_views.sql` → `gov.patient_360`, `apps/api/src/modules/patients`, `frontend/app/(dashboard)/patients/[id]` |
+    subgraph GOV["Governance needs"]
+        HIPAA["HIPAA-aligned controls<br/>RBAC · audit · masking · consent"]
+        ISO["ISO 15189<br/>authorized result release"]
+    end
 
-## Primary vs supporting
+    subgraph OUT["Outputs"]
+        P360["Patient 360<br/>one unified record"]
+        RPT["Compliance views<br/>DQ · freshness · audit"]
+    end
 
-The four selections above are the **primary scope** presented in the report/slide. The
-remaining items from the same healthcare row are **supporting components of the same
-pipeline**, not additional scope:
+    SRC --> INT --> GOV --> OUT
+```
 
-| Supporting item        | Role                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| LIS                    | Supplies lab orders/results that populate Patient 360 and the DQ rules.         |
-| Billing, Insurance     | Supply claims and coverage that populate Patient 360 and revenue KPIs.          |
-| REST / FHIR / HL7 APIs | Interop surfaces over the same data (also how external systems connect).        |
-| ISO 15189              | Lab-specific quality controls: authorized result release, controlled documents. |
-| Compliance dashboards  | DQ scorecard, freshness SLAs, audit trail — evidence for the governance need.   |
+> Governance is drawn as a stage for the activity, but in the platform it is
+> **cross-cutting**: the same controls apply from ingestion through delivery.
 
-## Statement to read aloud
+## Coverage against the slide
 
-> “Our project covers the **Healthcare / Labs** row. The primary **data source** is the
-> **EMR**, integrated through **ETL/ELT**, governed to meet **HIPAA** through access control,
-> audit logging, masking, and consent, and delivered as a unified **Patient 360**. LIS,
-> billing, and insurance feeds plus FHIR/HL7 APIs are supporting components of the same
-> pipeline.”
+| PPT item               | Status      | Evidence in this project                                                                          |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
+| **EMR**                | Implemented | `backend/fixtures/emr/patients.json`; `emr` connector; `SourceSystem.EMR`; highest MDM priority   |
+| **LIS**                | Implemented | `backend/fixtures/lis/results.json`; `etl:lis` run; lab results + TAT KPIs                        |
+| **Billing**            | Implemented | `backend/fixtures/billing/claims.csv`; claims, invoices, billing-lag KPI                          |
+| **Insurance**          | Implemented | `backend/fixtures/insurance/policies.json`; payers, eligibility, claim linkage                    |
+| **CDC**                | Partial     | Outbox-driven change feed (`/api/stream/events`, `app.OutboxEvent`), **not** log-based CDC        |
+| **ETL / ELT**          | Implemented | `packages/etl-core/src/pipeline.ts` (ETL) + `elt.ts` / materialized marts (ELT)                   |
+| **APIs**               | Implemented | REST, OpenAPI, FHIR (`Patient/Encounter/Observation/Claim`), HL7 ADT/ORU, webhooks                |
+| **HIPAA**              | Partial     | Aligned controls: RBAC, audit log, role-based masking, consent. The standard is not named in code |
+| **ISO 15189**          | Implemented | Authorized result release, `DocumentControl` (`QMS-001`, `GOV-003`), audit on release             |
+| **Patient 360**        | Implemented | `gov.patient_360` view → `/api/patients/:id` → `/patients/[id]` screen                            |
+| **Compliance Reports** | Partial     | Live DQ scorecard, freshness SLA, audit trail screens — **no** PDF/CSV export                     |
+
+Status legend: **Implemented** = working feature with code + data; **Partial** = the concept is
+present but narrower than the label suggests.
+
+## Presentation script
+
+> “Our group was assigned **Healthcare / Labs**. Our sources are the **EMR, LIS, billing, and
+> insurance** systems. We integrate them with **ETL/ELT** into a staging schema, transform and
+> validate, then load an OLTP store and a dimensional warehouse; **REST, FHIR, and HL7 APIs**
+> expose the data. Governance covers **HIPAA** through role-based access, audit logging,
+> masking, and consent, plus **ISO 15189** controls such as authorized lab-result release.
+> The outputs are **Patient 360** — one unified patient record — and **compliance views** for
+> data quality, freshness, and audit.”
+
+## Known gaps to acknowledge if asked
+
+| Gap                | Why it exists                                                               | How to phrase it                                            |
+| ------------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| CDC                | Change events come from the transactional outbox, not database log capture. | “We use an outbox-based change feed rather than true CDC.”  |
+| HIPAA              | The control is implemented through safeguards; the code names ISO 15189.    | “HIPAA-aligned controls: RBAC, audit, masking, consent.”    |
+| Compliance reports | Governance is delivered as live dashboards, not exported documents.         | “Compliance dashboards rather than generated report files.” |
 
 ## Intentionally out of scope
 
-| Item                                    | Reason                                                                      |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| Other industries                        | The project targets the healthcare row only.                                |
-| True CDC (Debezium/logical replication) | Change events come from the transactional outbox, not database log capture. |
-| Downloadable compliance PDFs            | Governance is delivered as dashboards and audit views, not report exports.  |
-| Real PHI                                | All data is synthetic; the free-tier database has no BAA.                   |
-
-## If the panel insists on exactly one item per column
-
-The four primaries are **fully implemented**, so this document already satisfies that reading.
-No code or database deletion is required: the supporting items can be described as internal
-components rather than separate scope. Removing them would leave Patient 360 with only
-demographics and encounters, because labs and claims come from LIS and billing.
+| Item             | Reason                                                                |
+| ---------------- | --------------------------------------------------------------------- |
+| Other industries | The activity assigns one industry; this project is Healthcare / Labs. |
+| Real PHI         | All data is synthetic; the free-tier database has no BAA.             |
