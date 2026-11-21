@@ -41,6 +41,7 @@ function normalizeLineage(raw: unknown): { nodes: LineageNode[]; runs: PipelineR
   } else if (typeof raw === 'object' && raw !== null) {
     const record = raw as Record<string, unknown>;
     if (Array.isArray(record.runs)) record.runs.forEach(pushItem);
+    if (Array.isArray(record.recentRuns)) record.recentRuns.forEach(pushItem);
     if (Array.isArray(record.nodes)) record.nodes.forEach(pushItem);
     if (Array.isArray(record.pipelineRuns)) record.pipelineRuns.forEach(pushItem);
     if (Array.isArray(record.lineage)) record.lineage.forEach(pushItem);
