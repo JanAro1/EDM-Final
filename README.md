@@ -7,6 +7,9 @@ analytics/KPIs, a deterministic ML risk model, REST + FHIR APIs, and a Next.js U
 
 > **New here?** Read [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md) for the end-to-end data
 > lifecycle, schema map, business rules, API contract, and a 10-minute demo walkthrough.
+>
+> **Presentation scope:** [docs/SCOPE.md](docs/SCOPE.md) — the Healthcare / Labs row and the
+> four primary selections: **EMR · ETL/ELT · HIPAA · Patient 360**.
 
 > **IMPORTANT — all data is SYNTHETIC.** Every patient, provider, claim, and lab result is
 > machine-generated fake data. No real PHI is stored or processed. The demo targets the
