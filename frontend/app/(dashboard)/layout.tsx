@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { IS_BILLING_SCOPE } from '@medidata/shared';
 import { Activity, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { NAV_SECTIONS, BREADCRUMB_LABELS, type NavItem } from '@/lib/nav';
@@ -22,6 +23,20 @@ const ROLE_BADGE: Record<string, 'purple' | 'info' | 'success' | 'warning' | 'da
   PATIENT: 'info',
 };
 
+/**
+ * Navigation allowed by the billing scope profile: Billing (source), Compliance
+ * Reports (output), the HIPAA evidence screens, and user administration.
+ */
+const BILLING_SCOPE_HREFS = new Set([
+  '/',
+  '/billing',
+  '/compliance',
+  '/governance/quality',
+  '/governance/freshness',
+  '/governance/audit',
+  '/admin/users',
+]);
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { can } = useAuth();
@@ -30,7 +45,10 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     () =>
       NAV_SECTIONS.map((section) => ({
         ...section,
-        items: section.items.filter((item: NavItem) => can(item.action, item.subject)),
+        items: section.items.filter(
+          (item: NavItem) =>
+            can(item.action, item.subject) && (!IS_BILLING_SCOPE || BILLING_SCOPE_HREFS.has(item.href)),
+        ),
       })).filter((section) => section.items.length > 0),
     [can],
   );

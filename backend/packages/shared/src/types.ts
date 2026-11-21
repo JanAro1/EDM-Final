@@ -72,6 +72,52 @@ export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 /** Standard response wrapper used by every API route. */
 export type ApiEnvelope<T> = { success: true; data: T } | { success: false; error: { code: string; message: string } };
 
+/**
+ * Compliance report — the declared output of the billing-scoped profile.
+ * Aggregates claims, DQ, freshness, audit and CDC state into one payload.
+ */
+export type ComplianceReport = {
+  generatedAt: string;
+  scope: {
+    industry: string;
+    source: string;
+    integration: string;
+    governance: string;
+    output: string;
+  };
+  billing: {
+    totalClaims: number;
+    openClaims: number;
+    totalBilled: number;
+    totalPaid: number;
+    byStatus: Array<{ status: string; count: number }>;
+    lastRunAt: string | null;
+  };
+  quality: {
+    overallScore: number;
+    totalRules: number;
+    passedRules: number;
+    failedRules: number;
+    criticalFailures: number;
+  };
+  freshness: Array<{
+    tableName: string;
+    isStale: boolean;
+    stalenessMinutes: number | null;
+    maxStalenessMinutes: number;
+  }>;
+  audit: {
+    eventsLast24h: number;
+    totalEvents: number;
+  };
+  cdc: {
+    pendingEvents: number;
+    deliveredEvents: number;
+    /** Timestamp of the most recent change event (null when the feed is empty). */
+    lastEventAt: string | null;
+  };
+};
+
 /** Shape returned by every paginated list endpoint. */
 export type Paged<T> = {
   items: T[];

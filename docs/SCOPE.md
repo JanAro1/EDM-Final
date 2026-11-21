@@ -1,83 +1,89 @@
-# Project scope — Healthcare / Labs
+# Project scope — Healthcare / Billing
 
 The activity assigns each group **one industry** and asks for a flow:
 **sources → integration methods → governance → outputs**. MediData is the
-**Healthcare / Labs** column, implemented end to end. No other industry exists in the
+**Healthcare** column, implemented end to end. No other industry exists in the
 codebase.
+
+## What we chose from the activity slide
+
+| Slide item           | Our choice                         |
+| -------------------- | ---------------------------------- |
+| **Industry**         | Healthcare                         |
+| **Data source**      | Billing only (claims + invoices)   |
+| **Integration**      | CDC (change data capture)          |
+| **Governance need**  | HIPAA                              |
+| **Output**           | Compliance Reports                 |
 
 ## Flow chart for the presentation
 
 ```mermaid
 flowchart LR
-    subgraph SRC["Data sources"]
-        EMR["EMR<br/>patients + encounters"]
-        LIS["LIS<br/>lab orders + results"]
-        BIL["Billing<br/>claims + invoices"]
-        INS["Insurance<br/>payers + coverage"]
+    subgraph SRC["Data source"]
+        BIL["Billing<br/>claims + invoices<br/>(fixtures/billing/claims.csv)"]
     end
 
-    subgraph INT["Integration methods"]
-        ETL["ETL / ELT<br/>staging → transform → warehouse"]
-        API["APIs<br/>REST · FHIR · HL7 v2"]
-        FEED["Outbox change feed<br/>(SSE)"]
+    subgraph INT["Integration method"]
+        CDC["CDC<br/>transactional outbox → change feed<br/>app.OutboxEvent → GET /api/stream/events"]
     end
 
-    subgraph GOV["Governance needs"]
-        HIPAA["HIPAA-aligned controls<br/>RBAC · audit · masking · consent"]
-        ISO["ISO 15189<br/>authorized result release"]
+    subgraph GOV["Governance need"]
+        HIPAA["HIPAA<br/>RBAC · audit log · role-based masking · consent"]
     end
 
-    subgraph OUT["Outputs"]
-        P360["Patient 360<br/>one unified record"]
-        RPT["Compliance views<br/>DQ · freshness · audit"]
+    subgraph OUT["Output"]
+        RPT["Compliance Reports<br/>GET /api/governance/compliance-report<br/>+ /compliance screen · CSV export"]
     end
 
     SRC --> INT --> GOV --> OUT
 ```
 
 > Governance is drawn as a stage for the activity, but in the platform it is
-> **cross-cutting**: the same controls apply from ingestion through delivery.
+> **cross-cutting**: the same controls (RBAC, audit, masking, consent) apply from
+> ingestion through delivery.
 
-## Coverage against the slide
+## How each choice is implemented
 
-| PPT item               | Status      | Evidence in this project                                                                          |
-| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
-| **EMR**                | Implemented | `backend/fixtures/emr/patients.json`; `emr` connector; `SourceSystem.EMR`; highest MDM priority   |
-| **LIS**                | Implemented | `backend/fixtures/lis/results.json`; `etl:lis` run; lab results + TAT KPIs                        |
-| **Billing**            | Implemented | `backend/fixtures/billing/claims.csv`; claims, invoices, billing-lag KPI                          |
-| **Insurance**          | Implemented | `backend/fixtures/insurance/policies.json`; payers, eligibility, claim linkage                    |
-| **CDC**                | Partial     | Outbox-driven change feed (`/api/stream/events`, `app.OutboxEvent`), **not** log-based CDC        |
-| **ETL / ELT**          | Implemented | `packages/etl-core/src/pipeline.ts` (ETL) + `elt.ts` / materialized marts (ELT)                   |
-| **APIs**               | Implemented | REST, OpenAPI, FHIR (`Patient/Encounter/Observation/Claim`), HL7 ADT/ORU, webhooks                |
-| **HIPAA**              | Partial     | Aligned controls: RBAC, audit log, role-based masking, consent. The standard is not named in code |
-| **ISO 15189**          | Implemented | Authorized result release, `DocumentControl` (`QMS-001`, `GOV-003`), audit on release             |
-| **Patient 360**        | Implemented | `gov.patient_360` view → `/api/patients/:id` → `/patients/[id]` screen                            |
-| **Compliance Reports** | Partial     | Live DQ scorecard, freshness SLA, audit trail screens — **no** PDF/CSV export                     |
+| Slide item               | Where it lives                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Billing source**       | `backend/fixtures/billing/claims.csv`; `packages/etl-core/src/extractors/billing.ts`; `app.Claim` / `app.Invoice`; `GET /api/claims`; `/billing` screen              |
+| **CDC integration**      | `app.OutboxEvent` written on every billing write; the worker emits `billing.claims.changed` after each billing batch and `deliverOutbox` publishes it; `GET /api/stream/events` (SSE); CDC counts surface in the compliance report (`pendingEvents` / `deliveredEvents` / `lastEventAt`) |
+| **HIPAA governance**     | `middleware/rbac.ts` (role → subject → action), `app.AuditLog` + `/governance/audit`, `packages/shared` masking helpers, `app.Consent`                                |
+| **Compliance Reports**   | `complianceReport()` in `apps/api/src/modules/governance/service.ts`; `GET /api/governance/compliance-report` (JSON or `?format=csv`); `/compliance` page + CSV button |
 
-Status legend: **Implemented** = working feature with code + data; **Partial** = the concept is
-present but narrower than the label suggests.
+The scope is switched by `SCOPE_PROFILE` in `backend/packages/shared/src/constants.ts`
+(default `billing` on the `scope/billing-cdc` branch, `full` on `main`). On the
+billing profile the worker extracts **only** the billing connector
+(`ACTIVE_CONNECTOR_NAMES`), the dashboard shows a billing overview, and the nav
+shows only Billing, Compliance Reports, the HIPAA evidence screens, and user
+administration.
 
 ## Presentation script
 
-> “Our group was assigned **Healthcare / Labs**. Our sources are the **EMR, LIS, billing, and
-> insurance** systems. We integrate them with **ETL/ELT** into a staging schema, transform and
-> validate, then load an OLTP store and a dimensional warehouse; **REST, FHIR, and HL7 APIs**
-> expose the data. Governance covers **HIPAA** through role-based access, audit logging,
-> masking, and consent, plus **ISO 15189** controls such as authorized lab-result release.
-> The outputs are **Patient 360** — one unified patient record — and **compliance views** for
-> data quality, freshness, and audit.”
+> “Our group chose **Healthcare**. Our data source is the **Billing** system —
+> claims and invoices. We integrate it with **CDC**: every billing write emits a
+> change event to a transactional outbox, and consumers read the change feed
+> instead of re-polling the source. Our governance need is **HIPAA**, covered by
+> role-based access control, an audit log on every read and write, role-based
+> masking of identifiers, and patient consent records. The output is a
+> **Compliance Report** — one payload that combines billing volumes, data-quality
+> results, freshness against SLAs, audit activity, and CDC queue state, available
+> as JSON or CSV from the Compliance Reports screen.”
 
 ## Known gaps to acknowledge if asked
 
-| Gap                | Why it exists                                                               | How to phrase it                                            |
-| ------------------ | --------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| CDC                | Change events come from the transactional outbox, not database log capture. | “We use an outbox-based change feed rather than true CDC.”  |
-| HIPAA              | The control is implemented through safeguards; the code names ISO 15189.    | “HIPAA-aligned controls: RBAC, audit, masking, consent.”    |
-| Compliance reports | Governance is delivered as live dashboards, not exported documents.         | “Compliance dashboards rather than generated report files.” |
+| Gap                       | Why it exists                                                                     | How to phrase it                                                        |
+| ------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| CDC mechanism             | Change events come from the transactional outbox, not database log capture (WAL). | “We use an outbox-based change feed rather than log-based CDC.”          |
+| HIPAA naming              | The safeguards are implemented; HIPAA itself is a regulation, not a library.      | “HIPAA-aligned safeguards: RBAC, audit, masking, consent.”               |
+| Clinical records          | Only billing was chosen, so EMR/LIS data exists solely to satisfy claim FKs.       | “Clinical rows are minimal stubs needed to keep claims referentially valid.” |
 
 ## Intentionally out of scope
 
-| Item             | Reason                                                                |
-| ---------------- | --------------------------------------------------------------------- |
-| Other industries | The activity assigns one industry; this project is Healthcare / Labs. |
-| Real PHI         | All data is synthetic; the free-tier database has no BAA.             |
+| Item                         | Reason                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| EMR, LIS, Insurance sources  | The activity row selects Billing only.                                    |
+| Patient 360, Labs, MDM merge | Outputs depend on multi-source clinical data that this scope excludes.    |
+| Analytics, ML risk, Outcomes | The chosen output is Compliance Reports.                                  |
+| Other industries             | The activity assigns one industry; this project is Healthcare.            |
+| Real PHI                     | All data is synthetic; the free-tier database has no BAA.                 |

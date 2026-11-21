@@ -14,6 +14,22 @@ export const WEB_PORT = Number(
   (typeof process !== 'undefined' && process.env?.WEB_PORT) || 3000,
 );
 
+/**
+ * Scope profile for this branch. The chosen activity row is Healthcare with
+ * Billing as the only source, CDC as the integration method, HIPAA as the
+ * governance need, and Compliance Reports as the output.
+ *
+ * `full` keeps the original multi-source platform (main branch).
+ */
+export const SCOPE_PROFILE: 'full' | 'billing' =
+  ((typeof process !== 'undefined' &&
+    (process.env?.NEXT_PUBLIC_SCOPE_PROFILE || process.env?.SCOPE_PROFILE)) as
+    | 'full'
+    | 'billing'
+    | undefined) ?? 'billing';
+
+export const IS_BILLING_SCOPE = SCOPE_PROFILE === 'billing';
+
 export const ROLES = [
   'ADMIN',
   'PHYSICIAN',
@@ -73,6 +89,7 @@ export const ENDPOINTS = {
   governanceQuality: { path: '/api/governance/quality', method: 'GET' },
   governanceFreshness: { path: '/api/governance/freshness', method: 'GET' },
   governanceAudit: { path: '/api/governance/audit', method: 'GET' },
+governanceComplianceReport: { path: '/api/governance/compliance-report', method: 'GET' },
   governanceMdmCandidates: { path: '/api/governance/mdm/candidates', method: 'GET' },
   governanceMdmCandidateReview: { path: '/api/governance/mdm/candidates/:id/review', method: 'POST' },
 

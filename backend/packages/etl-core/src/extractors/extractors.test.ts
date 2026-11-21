@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { IS_BILLING_SCOPE } from '@medidata/shared';
 import {
+  ACTIVE_CONNECTOR_NAMES,
   allConnectors,
   billingConnector,
   defaultFixturesDir,
@@ -11,6 +13,14 @@ import {
   legacyConnector,
   lisConnector,
 } from './index.js';
+
+/**
+ * Connector names for the active scope profile: `billing` profile extracts the
+ * billing source only, `full` extracts all five siloed systems.
+ */
+const EXPECTED_CONNECTOR_NAMES = IS_BILLING_SCOPE
+  ? ['billing-claims']
+  : ['emr-patients', 'lis-results', 'billing-claims', 'insurance-policies', 'legacy-patients'];
 
 async function collect(connector: { extract(): AsyncIterable<unknown> }): Promise<unknown[]> {
   const out: unknown[] = [];
@@ -60,14 +70,11 @@ describe('extractors', () => {
     expect(rows[5]!.payload.dob).toBe(''); // blank DOB survives extraction on purpose
   });
 
-  it('registry exposes all five connectors', () => {
-    expect(allConnectors().map((c) => c.name)).toEqual([
-      'emr-patients',
-      'lis-results',
-      'billing-claims',
-      'insurance-policies',
-      'legacy-patients',
-    ]);
+  it('registry exposes the connectors for the active scope profile', () => {
+    expect(ACTIVE_CONNECTOR_NAMES).toEqual(
+      IS_BILLING_SCOPE ? ['billing'] : ['emr', 'lis', 'billing', 'insurance', 'legacy'],
+    );
+    expect(allConnectors().map((c) => c.name)).toEqual(EXPECTED_CONNECTOR_NAMES);
     expect(getConnector('billing').sourceSystem).toBe('BILLING');
     expect(() => getConnector('nope' as never)).toThrow(/Unknown connector/);
   });

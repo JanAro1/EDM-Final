@@ -13,7 +13,7 @@
 import { prisma } from '@medidata/db';
 import { logger } from '@medidata/shared/logger';
 import {
-  CONNECTOR_NAMES,
+  ACTIVE_CONNECTOR_NAMES,
   applySqlAssets,
   getConnector,
   refreshMaterializedViews,
@@ -50,8 +50,9 @@ export async function runEtlJob(): Promise<EtlJobResult> {
   const ctx = etlContext();
   const connectors: EtlJobResult['connectors'] = [];
   const allRows: RawRow[] = [];
+  let billingRun: { runId: string; rowsOut: number } | null = null;
 
-  for (const name of CONNECTOR_NAMES) {
+  for (const name of ACTIVE_CONNECTOR_NAMES) {
     const connector = getConnector(name);
     const result = await runEtlPipeline(connector, ctx);
     connectors.push({
@@ -60,6 +61,7 @@ export async function runEtlJob(): Promise<EtlJobResult> {
       rowsOut: result.rowsOut,
       runId: result.pipelineRunId,
     });
+    if (name === 'billing') billingRun = { runId: result.pipelineRunId, rowsOut: result.rowsOut };
     allRows.push(...result.rows);
   }
 
@@ -73,6 +75,26 @@ export async function runEtlJob(): Promise<EtlJobResult> {
     log('warehouse.refresh.failed', { error: err instanceof Error ? err.message : String(err) });
     return [] as string[];
   });
+
+  // CDC: every billing batch that reaches the warehouse emits one change event
+  // to the transactional outbox. Consumers read the feed instead of re-polling
+  // the source; `deliverOutbox` marks events published after delivery.
+  if (billingRun) {
+    await prisma.outboxEvent.create({
+      data: {
+        aggregateType: 'BillingClaims',
+        aggregateId: billingRun.runId,
+        eventType: 'billing.claims.changed',
+        payload: {
+          source: 'BILLING',
+          pipelineRunId: billingRun.runId,
+          rowsIn: billingRun.rowsOut,
+          capturedAt: new Date().toISOString(),
+        },
+      },
+    });
+    log('cdc.billing.emitted', { runId: billingRun.runId, rows: billingRun.rowsOut });
+  }
 
   return {
     connectors,

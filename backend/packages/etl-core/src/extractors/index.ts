@@ -1,4 +1,5 @@
-/** Connector registry — the five siloed source systems of the MediData demo. */
+/** Connector registry — the siloed source systems of the MediData demo. */
+import { IS_BILLING_SCOPE } from '@medidata/shared';
 import type { Connector } from '../types.js';
 import { emrConnector } from './emr.js';
 import { lisConnector } from './lis.js';
@@ -12,6 +13,14 @@ export { emrConnector, lisConnector, billingConnector, insuranceConnector, legac
 
 export const CONNECTOR_NAMES = ['emr', 'lis', 'billing', 'insurance', 'legacy'] as const;
 export type ConnectorName = (typeof CONNECTOR_NAMES)[number];
+
+/**
+ * Connectors enabled for the active scope profile. On the `billing` profile the
+ * platform ingests only the billing source; `full` keeps all five.
+ */
+export const ACTIVE_CONNECTOR_NAMES: readonly ConnectorName[] = IS_BILLING_SCOPE
+  ? ['billing']
+  : CONNECTOR_NAMES;
 
 const FACTORIES: Record<ConnectorName, (fixturesDir?: string) => Connector> = {
   emr: emrConnector,
@@ -27,7 +36,7 @@ export function getConnector(name: ConnectorName, fixturesDir?: string): Connect
   return factory(fixturesDir);
 }
 
-/** All five connectors, in deterministic order. */
+/** All connectors for the active scope profile, in deterministic order. */
 export function allConnectors(fixturesDir?: string): Connector[] {
-  return CONNECTOR_NAMES.map((n) => getConnector(n, fixturesDir));
+  return ACTIVE_CONNECTOR_NAMES.map((n) => getConnector(n, fixturesDir));
 }
