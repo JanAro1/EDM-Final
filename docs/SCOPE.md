@@ -47,7 +47,7 @@ flowchart LR
 | Slide item               | Where it lives                                                                                                                                                        |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Billing source**       | `backend/fixtures/billing/claims.csv`; `packages/etl-core/src/extractors/billing.ts`; `app.Claim` / `app.Invoice`; `GET /api/claims`; `/billing` screen              |
-| **CDC integration**      | `app.OutboxEvent` written on every billing write; `GET /api/stream/events` (SSE); CDC counts surface in the compliance report (`pendingEvents` / `deliveredEvents`)     |
+| **CDC integration**      | `app.OutboxEvent` written on every billing write; the worker emits `billing.claims.changed` after each billing batch and `deliverOutbox` publishes it; `GET /api/stream/events` (SSE); CDC counts surface in the compliance report (`pendingEvents` / `deliveredEvents` / `lastEventAt`) |
 | **HIPAA governance**     | `middleware/rbac.ts` (role → subject → action), `app.AuditLog` + `/governance/audit`, `packages/shared` masking helpers, `app.Consent`                                |
 | **Compliance Reports**   | `complianceReport()` in `apps/api/src/modules/governance/service.ts`; `GET /api/governance/compliance-report` (JSON or `?format=csv`); `/compliance` page + CSV button |
 
