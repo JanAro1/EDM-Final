@@ -19,6 +19,8 @@ governanceRouter.get('/quality', controller.quality);
 governanceRouter.get('/freshness', controller.freshness);
 // GET /api/governance/audit — AUDITOR/ADMIN only (separate subject guard).
 governanceRouter.get('/audit', requirePermission('read', 'AuditLog'), controller.audit);
+// GET /api/governance/compliance-report — billing-scoped compliance output (?format=csv).
+governanceRouter.get('/compliance-report', controller.complianceReport);
 // GET /api/governance/mdm/candidates — merge-review queue (HITL).
 governanceRouter.get('/mdm/candidates', controller.mdmCandidates);
 // POST /api/governance/mdm/candidates/:id/review — steward decision.

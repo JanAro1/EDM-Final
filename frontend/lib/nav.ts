@@ -55,6 +55,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/analytics', label: 'Analytics', icon: BarChart3, action: 'read', subject: 'analytics' },
       { href: '/outcomes', label: 'Outcomes', icon: Sparkles, action: 'read', subject: 'kpi' },
+      { href: '/compliance', label: 'Compliance Reports', icon: FileText, action: 'read', subject: 'governance' },
     ],
   },
   {
@@ -83,6 +84,7 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   patients: 'Patients',
   labs: 'Laboratory',
   billing: 'Billing',
+  compliance: 'Compliance Reports',
   insurance: 'Insurance',
   analytics: 'Analytics',
   outcomes: 'Outcomes',

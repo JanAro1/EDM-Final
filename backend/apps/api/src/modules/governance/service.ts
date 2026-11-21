@@ -6,6 +6,7 @@
  * app.AuditLog, AUDITOR/ADMIN only).
  */
 import { prisma } from '@medidata/db';
+import type { ComplianceReport } from '@medidata/shared';
 import type { Request } from 'express';
 import { z } from 'zod';
 import { listMergeCandidates, reviewMergeCandidate, MdmError } from '@medidata/mdm';
@@ -232,4 +233,95 @@ export async function reviewMdmCandidate(
     }
     throw err;
   }
+}
+
+/** Statuses that count as "open" in the billing compliance report. */
+const OPEN_CLAIM_STATUSES = new Set(['DRAFT', 'SUBMITTED', 'PENDING']);
+
+/**
+ * Compliance report — the declared output of the billing-scoped profile.
+ * Aggregates the four pillars of the activity row: billing volumes (source),
+ * CDC outbox state (integration), DQ/freshness/audit (HIPAA governance), and
+ * the report metadata itself (output).
+ */
+export async function complianceReport(): Promise<ComplianceReport> {
+  const since = new Date(Date.now() - 86_400_000);
+  const [claims, scorecard, freshnessRows, auditTotal, audit24h, pendingEvents, deliveredEvents, lastRun, lastEvent] =
+    await Promise.all([
+      prisma.claim.findMany({ select: { status: true, billedAmount: true, paidAmount: true } }),
+      qualityScorecard(),
+      freshness(),
+      prisma.auditLog.count(),
+      prisma.auditLog.count({ where: { createdAt: { gte: since } } }),
+      prisma.outboxEvent.count({ where: { publishedAt: null } }),
+      prisma.outboxEvent.count({ where: { publishedAt: { not: null } } }),
+      prisma.pipelineRun.findFirst({
+        where: { pipelineName: { contains: 'billing' } },
+        orderBy: { startedAt: 'desc' },
+        select: { startedAt: true },
+      }),
+      prisma.outboxEvent.findFirst({
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true },
+      }),
+    ]);
+
+  const byStatus = new Map<string, number>();
+  let totalBilled = 0;
+  let totalPaid = 0;
+  for (const claim of claims) {
+    byStatus.set(claim.status, (byStatus.get(claim.status) ?? 0) + 1);
+    totalBilled += Number(claim.billedAmount);
+    totalPaid += Number(claim.paidAmount ?? 0);
+  }
+
+  const rows = freshnessRows as Array<{
+    tableName: string;
+    isStale: boolean;
+    stalenessMinutes: number | null;
+    maxStalenessMinutes: number;
+  }>;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    scope: {
+      industry: 'Healthcare',
+      source: 'Billing',
+      integration: 'CDC (outbox change feed)',
+      governance: 'HIPAA',
+      output: 'Compliance Reports',
+    },
+    billing: {
+      totalClaims: claims.length,
+      openClaims: claims.filter((c) => OPEN_CLAIM_STATUSES.has(c.status)).length,
+      totalBilled: Math.round(totalBilled * 100) / 100,
+      totalPaid: Math.round(totalPaid * 100) / 100,
+      byStatus: [...byStatus.entries()]
+        .map(([status, count]) => ({ status, count }))
+        .sort((a, b) => a.status.localeCompare(b.status)),
+      lastRunAt: lastRun?.startedAt?.toISOString() ?? null,
+    },
+    quality: {
+      overallScore: scorecard.overallScore,
+      totalRules: scorecard.totalRules,
+      passedRules: scorecard.passedRules,
+      failedRules: scorecard.failedRules,
+      criticalFailures: scorecard.criticalFailures,
+    },
+    freshness: rows.map((r) => ({
+      tableName: r.tableName,
+      isStale: r.isStale,
+      stalenessMinutes: r.stalenessMinutes,
+      maxStalenessMinutes: r.maxStalenessMinutes,
+    })),
+    audit: {
+      eventsLast24h: audit24h,
+      totalEvents: auditTotal,
+    },
+    cdc: {
+      pendingEvents,
+      deliveredEvents,
+      lastEventAt: lastEvent?.createdAt?.toISOString() ?? null,
+    },
+  };
 }

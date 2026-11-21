@@ -13,6 +13,8 @@ export {
   WEB_PORT,
   ROLES,
   ENDPOINTS,
+  SCOPE_PROFILE,
+  IS_BILLING_SCOPE,
   type Role as RoleName,
 } from './constants.js';
 
